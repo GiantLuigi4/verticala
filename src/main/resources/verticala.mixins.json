@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "tfc.verticala.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "ChunkMixin",
+    "WorldMixin",
+    "interaction.EntityMixin",
+    "interaction.ItemBlockMixin",
+    "render.NoLight",
+    "render.RenderGlobalMixin"
+  ],
+  "client": [
+    "generator.MinecraftMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

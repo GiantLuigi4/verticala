@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "verticala",
+  "version": "${version}",
+
+  "name": "Verticala",
+  "description": "Infinite* build limit.",
+  "authors": [
+    "GiantLuigi4"
+  ],
+  "contact": {
+    "homepage": "",
+    "sources": ""
+  },
+
+	"icon": "icon.png",
+  "license": "CC0-1.0",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+			"tfc.verticala.Verticala"
+    ],
+		"beforeGameStart": [
+			"tfc.verticala.Verticala"
+		],
+		"afterGameStart": [
+			"tfc.verticala.Verticala"
+		],
+		"recipesReady": [
+			"tfc.verticala.Verticala"
+		]
+	},
+  "mixins": [
+      "verticala.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.13.3"
+  },
+  "suggests": {
+  }
+}
