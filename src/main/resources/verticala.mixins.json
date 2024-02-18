@@ -8,6 +8,8 @@
     "WorldMixin",
     "interaction.EntityMixin",
     "interaction.ItemBlockMixin",
+    "loader.ChunkLoaderLegacyMixin",
+    "loader.SaveHandlerClientSPMixin",
     "render.NoLight",
     "render.RenderGlobalMixin"
   ],

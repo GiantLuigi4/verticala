@@ -1,0 +1,3 @@
+accessWidener v2 named
+
+accessible method net/minecraft/core/world/chunk/ChunkLoaderLegacy storeChunkSectionInCompound (Lnet/minecraft/core/world/chunk/ChunkSection;Lnet/minecraft/core/world/chunk/writer/ChunkWriter;)V

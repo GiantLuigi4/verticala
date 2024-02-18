@@ -6,13 +6,17 @@ import net.minecraft.core.world.World;
 import net.minecraft.core.world.biome.Biome;
 import net.minecraft.core.world.chunk.Chunk;
 import net.minecraft.core.world.chunk.ChunkSection;
+import net.minecraft.core.world.chunk.IChunkLoader;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import tfc.verticala.impl.ChunkLoaderCubic;
 import tfc.verticala.itf.ChunkModifications;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Mixin(value = Chunk.class, remap = false)
 public abstract class ChunkMixin implements ChunkModifications {
@@ -52,9 +56,13 @@ public abstract class ChunkMixin implements ChunkModifications {
 	public double[] humidity;
 	@Shadow
 	public double[] variety;
-	private final HashMap<Integer, ChunkSection> sectionHashMap = new HashMap<>();
 
-	public HashMap<Integer, ChunkSection> v_c$getSectionHashMap() {
+	@Shadow
+	public abstract void init();
+
+	private final Map<Integer, ChunkSection> sectionHashMap = new ConcurrentHashMap<>();
+
+	public Map<Integer, ChunkSection> v_c$getSectionHashMap() {
 		return sectionHashMap;
 	}
 
@@ -66,6 +74,21 @@ public abstract class ChunkMixin implements ChunkModifications {
 	 */
 	@Overwrite
 	public ChunkSection getSection(int index) {
+		if (latest != null && latest.yPosition == index) return latest;
+		if (!sectionHashMap.containsKey(index)) {
+			IChunkLoader ldr = world.getSaveHandler().getChunkLoader(world.dimension);
+			if (ldr instanceof ChunkLoaderCubic) {
+				try {
+					((ChunkLoaderCubic) ldr).loadChunk(world, (Chunk) (Object) this, xPosition, index, zPosition);
+				} catch (Throwable err) {
+				}
+			}
+		}
+		latest = sectionHashMap.computeIfAbsent(index, (k) -> new ChunkSection((Chunk) (Object) this, k));
+		return latest;
+	}
+
+	public ChunkSection v_c$createSection(int index) {
 		if (latest != null && latest.yPosition == index) return latest;
 		latest = sectionHashMap.computeIfAbsent(index, (k) -> new ChunkSection((Chunk) (Object) this, k));
 		return latest;
@@ -85,7 +108,7 @@ public abstract class ChunkMixin implements ChunkModifications {
 	public int getBlockID(int x, int y, int z) {
 		if (x >= 0 && x < 16 && z >= 0 && z < 16) {
 			ChunkSection section = v_c$getSectionNullable(y >> 4);
-			if (section != null) return section.getBlock(x, y & 15	, z);
+			if (section != null) return section.getBlock(x, y & 15, z);
 		}
 		return 0;
 	}
@@ -275,6 +298,7 @@ public abstract class ChunkMixin implements ChunkModifications {
 
 
 	// TODO: do these especially better
+
 	/**
 	 * @author
 	 * @reason
