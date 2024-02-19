@@ -11,7 +11,9 @@ import net.minecraft.core.world.chunk.reader.ChunkReaderVersion2;
 import net.minecraft.core.world.chunk.writer.ChunkWriter;
 import net.minecraft.core.world.save.LevelData;
 import net.minecraft.core.world.save.mcregion.RegionFileCache;
+import tfc.verticala.generator.ChunkGeneratorCubic;
 import tfc.verticala.itf.ChunkModifications;
+import tfc.verticala.itf.ChunkProviderModifications;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -30,13 +32,14 @@ public class ChunkLoaderCubic implements IChunkLoader {
 	}
 
 	int cm(int y) {
-		if (y < 0) {
-			y = -y;
-			y >>= 4;
-			y = -y;
-			return y - (1 << 4);
-		}
-		return y >> 4;
+//		if (y < 0) {
+//			y = -y;
+//			y >>= 4;
+//			y = -y;
+//			return y - (1 << 4);
+//		}
+//		return y >> 4;
+		return (y / 8) * 8;
 	}
 
 	public void loadChunk(World world, Chunk chnk, int x, int y, int z) throws IOException {
@@ -47,17 +50,20 @@ public class ChunkLoaderCubic implements IChunkLoader {
 			CompoundTag tag = NbtIo.read(regionStream);
 			ChunkReaderVersion2 rdr = new ChunkReaderVersion2(world, tag);
 			Map<Integer, String> biomeRegistry = rdr.getBiomeRegistry();
-			for (int i = 0; i < 16; i++) {
+			for (int i = 0; i < 8; i++) {
 				ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm(y) + i);
 				ChunkLoaderLegacy.loadChunkSectionFromCompound(
 					sec, rdr, biomeRegistry
 				);
 			}
 		} else {
-			for (int i = 0; i < 16; i++) {
+			ChunkGeneratorCubic cubic = ((ChunkProviderModifications) world.getChunkProvider()).getCubicGenerator();
+			for (int i = 0; i < 8; i++) {
 				ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm(y) + i);
+				cubic.generate(chnk, sec);
 			}
 		}
+		chnk.recalcHeightmap();
 		cancelSections = dskip;
 	}
 
@@ -66,19 +72,6 @@ public class ChunkLoaderCubic implements IChunkLoader {
 		DataInputStream regionStream = RegionFileCache.getChunkInputStream(this.worldDir, x, z);
 		if (regionStream != null) {
 			CompoundTag tag = NbtIo.read(regionStream);
-//			if (tag.containsKey("Level")) {
-//				cancelSections = false;
-//				Chunk chunk = ChunkLoaderLegacy.loadChunkIntoWorldFromCompound(world, tag.getCompound("Level"));
-//				if (!chunk.isAtLocation(x, z)) {
-//					System.out.println("Chunk file at " + x + "," + z + " is in the wrong location; relocating. (Expected " + x + ", " + z + ", got " + chunk.xPosition + ", " + chunk.zPosition + ")");
-//					tag.putInt("xPos", x);
-//					tag.putInt("zPos", z);
-//					chunk = ChunkLoaderLegacy.loadChunkIntoWorldFromCompound(world, tag.getCompound("Level"));
-//				}
-//
-//				chunk.fixMissingBlocks();
-//				return chunk;
-//			} else {
 			Chunk chunk = ChunkLoaderLegacy.loadChunkIntoWorldFromCompound(world, tag.getCompound("Level"));
 
 			if (!chunk.isAtLocation(x, z)) {
@@ -90,7 +83,6 @@ public class ChunkLoaderCubic implements IChunkLoader {
 
 			chunk.fixMissingBlocks();
 			return chunk;
-//			}
 		} else {
 			cancelSections = false;
 			return null;
@@ -131,7 +123,7 @@ public class ChunkLoaderCubic implements IChunkLoader {
 				idx = i;
 				ChunkSection section = map.get(i);
 
-				int crd = i >> 4;
+				int crd = i >> 3;
 				if (cd != crd) {
 					if (cubicReegionStream != null) {
 						NbtIo.write(sectionsTag, cubicReegionStream);

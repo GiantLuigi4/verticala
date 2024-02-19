@@ -38,7 +38,6 @@ public abstract class ChunkGeneratorCubic {
 		if (result.hasBlocks()) section.blocks = result.getSectionBlocks();
 //		}
 //
-		chunk.recalcHeightmap();
 //		return chunk;
 	}
 

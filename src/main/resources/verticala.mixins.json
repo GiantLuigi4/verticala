@@ -6,6 +6,7 @@
   "mixins": [
     "ChunkMixin",
     "WorldMixin",
+    "generator.ChunkProviderStaticMixin",
     "interaction.EntityMixin",
     "interaction.ItemBlockMixin",
     "loader.ChunkLoaderLegacyMixin",

@@ -269,8 +269,11 @@ public abstract class ChunkMixin implements ChunkModifications {
 	@Overwrite
 	public void setBrightness(LightLayer layer, int x, int y, int z, int value) {
 		if (x >= 0 && x < 16 && z >= 0 && z < 16) {
-			this.getSection(y / 16).setBrightness(layer, x, y & 15, z, value);
-			this.isModified = true;
+			ChunkSection section = this.v_c$getSectionNullable(y / 16);
+			if (section != null) {
+				section.setBrightness(layer, x, y & 15, z, value);
+				this.isModified = true;
+			}
 		}
 	}
 

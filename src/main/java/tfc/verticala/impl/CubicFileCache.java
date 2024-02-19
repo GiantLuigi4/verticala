@@ -17,7 +17,7 @@ public class CubicFileCache {
 
 	public static synchronized RegionFile loadRegionFileFromCoords(File worldDir, int x, int y, int z) {
 		File regionDir = new File(worldDir, "region");
-		File regionFile = new File(regionDir, "r." + (x >> 5) + "." + (y >> 4) + "." + (z >> 5) + ".mcr");
+		File regionFile = new File(regionDir, "r." + (x >> 5) + "." + (y >> 3) + "." + (z >> 5) + ".mcr");
 		Reference<RegionFile> reference = cache.get(regionFile);
 		RegionFile loadedRegion;
 		if (reference != null) {
