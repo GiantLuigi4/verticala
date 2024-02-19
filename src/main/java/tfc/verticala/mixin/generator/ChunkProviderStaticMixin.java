@@ -30,12 +30,8 @@ public class ChunkProviderStaticMixin implements ChunkProviderModifications {
 
 	@Inject(at = @At("TAIL"), method = "<init>")
 	public void postInit(World world, IChunkLoader ichunkloader, ChunkGenerator chunkGenerator, CallbackInfo ci) {
-		cubic = new VanillaCubicChunkGenerator(
-			world, chunkGenerator, null, new ChunkDecoratorCubic() {
-			@Override
-			public void decorate(Chunk chunk, ChunkSection section) {
-				// no-op
-			}
+		cubic = new VanillaCubicChunkGenerator(world, chunkGenerator, (chunk, section) -> {
+			// no-op
 		});
 	}
 

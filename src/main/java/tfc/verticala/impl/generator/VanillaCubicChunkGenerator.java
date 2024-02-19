@@ -15,18 +15,15 @@ public class VanillaCubicChunkGenerator extends ChunkGeneratorCubic {
 	SectionGeneratorResult skyRes = new SectionGeneratorResult();
 
 	ChunkGenerator vanilla;
-	ChunkDecorator vanillaDecor;
 
 	public VanillaCubicChunkGenerator(
 		World world,
 		ChunkGenerator vanilla,
-		ChunkDecorator vanillaDecor,
 		ChunkDecoratorCubic decorator
 	) {
 		super(world, decorator);
 
 		this.vanilla = vanilla;
-		this.vanillaDecor = vanillaDecor;
 
 		for (int x = 0; x < 16; x++) {
 			for (int y = 0; y < 16; y++) {
@@ -51,7 +48,6 @@ public class VanillaCubicChunkGenerator extends ChunkGeneratorCubic {
 
 	@Override
 	public void preDecorate(Chunk chunk) {
-		if (vanillaDecor != null)
-			vanillaDecor.decorate(chunk);
+		vanilla.decorate(chunk);
 	}
 }
