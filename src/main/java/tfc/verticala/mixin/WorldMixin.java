@@ -27,6 +27,9 @@ public abstract class WorldMixin {
 	@Shadow
 	public abstract boolean checkIfAABBIsClear(AABB axisalignedbb);
 
+	@Shadow
+	public abstract boolean isChunkLoaded(int x, int z);
+
 	@Overwrite
 	public int getHeightBlocks() {
 		return 32000000;
@@ -195,6 +198,41 @@ public abstract class WorldMixin {
 
 				return blockId > 0 && block == null && block1.canPlaceBlockOnSide((World) (Object) this, x, y, z, side.getId());
 			}
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * @author
+	 * @reason
+	 */
+	@Overwrite
+	public boolean isBlockLoaded(int x, int y, int z) {
+		return y >= -32000000 && y < this.getHeightBlocks() && this.isChunkLoaded(Math.floorDiv(x, 16), Math.floorDiv(z, 16));
+	}
+
+	/**
+	 * @author
+	 * @reason
+	 */
+	@Overwrite
+	public boolean areBlocksLoaded(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+		if (maxY >= -32000000 && minY < this.getHeightBlocks()) {
+			minX >>= 4;
+			minZ >>= 4;
+			maxX >>= 4;
+			maxZ >>= 4;
+
+			for(int chunkX = minX; chunkX <= maxX; ++chunkX) {
+				for(int chunkZ = minZ; chunkZ <= maxZ; ++chunkZ) {
+					if (!this.isChunkLoaded(chunkX, chunkZ)) {
+						return false;
+					}
+				}
+			}
+
+			return true;
 		} else {
 			return false;
 		}
