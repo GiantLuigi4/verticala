@@ -2,7 +2,7 @@
 
 Infinite* build limit for BTA
 
-(Infinite up to like + or - 320000 blocks, same as the world width)
+(Infinite up to + or - 32000000 blocks, same as the world width)
 
 Verticala is currently very heavily WIP, so don't expect it to work properly!
 
