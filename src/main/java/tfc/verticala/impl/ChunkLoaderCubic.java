@@ -55,7 +55,6 @@ public class ChunkLoaderCubic implements IChunkLoader {
 				ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm(y) + i);
 				cubic.generate(chnk, sec);
 				chnk.setChunkModified();
-				sec.onLoad(world);
 			}
 		}
 		chnk.recalcHeightmap();
