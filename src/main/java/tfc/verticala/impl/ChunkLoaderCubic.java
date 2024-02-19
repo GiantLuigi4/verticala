@@ -32,14 +32,7 @@ public class ChunkLoaderCubic implements IChunkLoader {
 	}
 
 	int cm(int y) {
-//		if (y < 0) {
-//			y = -y;
-//			y >>= 4;
-//			y = -y;
-//			return y - (1 << 4);
-//		}
-//		return y >> 4;
-		return (y / 8) * 8;
+		return ((y + (y < 0 ? 1 : 0)) / 8) * 8 - (y < 0 ? 8 : 0);
 	}
 
 	public void loadChunk(World world, Chunk chnk, int x, int y, int z) throws IOException {
@@ -61,6 +54,8 @@ public class ChunkLoaderCubic implements IChunkLoader {
 			for (int i = 0; i < 8; i++) {
 				ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm(y) + i);
 				cubic.generate(chnk, sec);
+				chnk.setChunkModified();
+				sec.onLoad(world);
 			}
 		}
 		chnk.recalcHeightmap();

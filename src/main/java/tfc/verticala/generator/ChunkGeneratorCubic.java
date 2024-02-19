@@ -33,7 +33,9 @@ public abstract class ChunkGeneratorCubic {
 //				section.biome[sectionY] = (byte) Registries.BIOMES.getNumericIdOfItem(biomes[sectionY]);
 //			}
 
-		section.biome[chunkY] = (byte) Registries.BIOMES.getNumericIdOfItem(biomes[chunkY]);
+		for (int i = 0; i < section.biome.length; i++) {
+			section.biome[i] = (byte) Registries.BIOMES.getNumericIdOfItem(biomes[i]);
+		}
 		SectionGeneratorResult result = this.doBlockGeneration(chunk, section);
 		if (result.hasBlocks()) section.blocks = result.getSectionBlocks();
 //		}
