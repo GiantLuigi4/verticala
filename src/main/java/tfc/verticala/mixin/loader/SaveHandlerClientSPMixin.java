@@ -26,14 +26,19 @@ public class SaveHandlerClientSPMixin {
 		this.worldDirName = worldDirName;
 	}
 
+	ChunkLoaderCubic cubic = null;
+
 	/**
 	 * @author
 	 * @reason
 	 */
 	@Overwrite
 	public IChunkLoader getChunkLoader(Dimension dimension) {
-		File dimDir = this.saveFormat.getDimensionRootDir(this.worldDirName, dimension);
-		dimDir.mkdirs();
-		return new ChunkLoaderCubic(dimDir);
+		if (cubic == null) {
+			File dimDir = this.saveFormat.getDimensionRootDir(this.worldDirName, dimension);
+			dimDir.mkdirs();
+			cubic = new ChunkLoaderCubic(dimDir);
+		}
+		return cubic;
 	}
 }

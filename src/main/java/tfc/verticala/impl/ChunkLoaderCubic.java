@@ -11,9 +11,11 @@ import net.minecraft.core.world.chunk.reader.ChunkReaderVersion2;
 import net.minecraft.core.world.chunk.writer.ChunkWriter;
 import net.minecraft.core.world.save.LevelData;
 import net.minecraft.core.world.save.mcregion.RegionFileCache;
+import tfc.verticala.data.SectionGroup;
 import tfc.verticala.generator.ChunkGeneratorCubic;
 import tfc.verticala.itf.ChunkModifications;
 import tfc.verticala.itf.ChunkProviderModifications;
+import tfc.verticala.util.MathHelpers;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -32,7 +34,8 @@ public class ChunkLoaderCubic implements IChunkLoader {
 	}
 
 	int cm(int y) {
-		return ((y + (y < 0 ? 1 : 0)) / 8) * 8 - (y < 0 ? 8 : 0);
+//		return ((y + (y < 0 ? 1 : 0)) / 8) * 8 - (y < 0 ? 8 : 0);
+		return MathHelpers.remEuclid(y, 8);
 	}
 
 	public void loadChunk(World world, Chunk chnk, int x, int y, int z) throws IOException {
@@ -52,6 +55,11 @@ public class ChunkLoaderCubic implements IChunkLoader {
 				);
 			}
 		} else {
+			if (cm(y) == 0) {
+				cancelSections = dskip;
+				return;
+			}
+
 			ChunkGeneratorCubic cubic = ((ChunkProviderModifications) world.getChunkProvider()).getCubicGenerator();
 			cubic.generate(
 				chnk,
@@ -61,7 +69,7 @@ public class ChunkLoaderCubic implements IChunkLoader {
 			chnk.setChunkModified();
 		}
 
-		chnk.recalcHeightmap();
+//		chnk.recalcHeightmap();
 		cancelSections = dskip;
 	}
 
@@ -104,7 +112,7 @@ public class ChunkLoaderCubic implements IChunkLoader {
 				levelData.setSizeOnDisk(levelData.getSizeOnDisk() + (long) RegionFileCache.getSizeDelta(this.worldDir, chunk.xPosition, chunk.zPosition));
 			}
 
-			Map<Integer, ChunkSection> map = ((ChunkModifications) chunk).v_c$getSectionHashMap();
+			Map<Integer, SectionGroup> map = ((ChunkModifications) chunk).v_c$getSectionHashMap();
 			Set<Integer> ints = map.keySet();
 			ArrayList<Integer> sort = new ArrayList<>(ints);
 			sort.sort(Integer::compareTo);
@@ -119,9 +127,9 @@ public class ChunkLoaderCubic implements IChunkLoader {
 			int idx = 0;
 			for (Integer i : sort) {
 				idx = i;
-				ChunkSection section = map.get(i);
+				SectionGroup group = map.get(i);
 
-				int crd = i >> 3;
+				int crd = i;
 				if (cd != crd) {
 					if (cubicReegionStream != null) {
 						NbtIo.write(sectionsTag, cubicReegionStream);
@@ -136,10 +144,12 @@ public class ChunkLoaderCubic implements IChunkLoader {
 					cd = crd;
 				}
 
-				ChunkLoaderLegacy.storeChunkSectionInCompound(
-					section,
-					new ChunkWriter(world, sectionsTag)
-				);
+				for (int sectionIndex = 0; sectionIndex < SectionGroup.SIZE; sectionIndex++) {
+					ChunkLoaderLegacy.storeChunkSectionInCompound(
+						group.get(sectionIndex),
+						new ChunkWriter(world, sectionsTag)
+					);
+				}
 			}
 
 			if (cubicReegionStream != null) {

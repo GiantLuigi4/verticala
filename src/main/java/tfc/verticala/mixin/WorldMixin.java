@@ -12,6 +12,7 @@ import net.minecraft.core.world.chunk.ChunkSection;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import tfc.verticala.data.SectionGroup;
 import tfc.verticala.itf.ChunkModifications;
 
 import java.util.Map;
@@ -35,13 +36,13 @@ public abstract class WorldMixin {
 		return 32000000;
 	}
 
-	protected int top(Chunk chunk) {
-		Map<Integer, ChunkSection> sectionMap = ((ChunkModifications) chunk).v_c$getSectionHashMap();
-		int mv = Integer.MIN_VALUE;
-		for (Integer i : sectionMap.keySet())
-			if (i > mv) mv = i;
-		return sectionMap.get(mv).yPosition << 4 + 16;
-	}
+//	protected int top(Chunk chunk) {
+//		Map<Integer, SectionGroup> sectionMap = ((ChunkModifications) chunk).v_c$getSectionHashMap();
+//		int mv = Integer.MIN_VALUE;
+//		for (Integer i : sectionMap.keySet())
+//			if (i > mv) mv = i;
+//		return sectionMap.get(mv).yPosition << 4 + 16;
+//	}
 
 	@Overwrite
 	public void scheduleLightingUpdate(LightLayer layer, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {

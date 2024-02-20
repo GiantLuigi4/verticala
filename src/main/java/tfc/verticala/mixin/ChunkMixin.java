@@ -11,8 +11,10 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import tfc.verticala.data.SectionGroup;
 import tfc.verticala.impl.ChunkLoaderCubic;
 import tfc.verticala.itf.ChunkModifications;
+import tfc.verticala.util.MathHelpers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -60,13 +62,13 @@ public abstract class ChunkMixin implements ChunkModifications {
 	@Shadow
 	public abstract void init();
 
-	private final Map<Integer, ChunkSection> sectionHashMap = new ConcurrentHashMap<>();
+	private final Map<Integer, SectionGroup> sectionHashMap = new ConcurrentHashMap<>();
 
-	public Map<Integer, ChunkSection> v_c$getSectionHashMap() {
+	public Map<Integer, SectionGroup> v_c$getSectionHashMap() {
 		return sectionHashMap;
 	}
 
-	ChunkSection latest;
+	SectionGroup latest;
 
 	/**
 	 * @author
@@ -74,8 +76,12 @@ public abstract class ChunkMixin implements ChunkModifications {
 	 */
 	@Overwrite
 	public ChunkSection getSection(int index) {
-		if (latest != null && latest.yPosition == index) return latest;
-		if (!sectionHashMap.containsKey(index)) {
+		if (latest != null && latest.crd == index) return latest.get(
+			MathHelpers.remEuclid(index, 8)
+		);
+		SectionGroup latest;
+		if (!sectionHashMap.containsKey(index >> 3)) {
+			latest = sectionHashMap.computeIfAbsent(index >> 3, (k) -> new SectionGroup((Chunk) (Object) this, k));
 			IChunkLoader ldr = world.getSaveHandler().getChunkLoader(world.dimension);
 			if (ldr instanceof ChunkLoaderCubic) {
 				try {
@@ -83,21 +89,32 @@ public abstract class ChunkMixin implements ChunkModifications {
 				} catch (Throwable err) {
 				}
 			}
-		}
-		latest = sectionHashMap.computeIfAbsent(index, (k) -> new ChunkSection((Chunk) (Object) this, k));
-		return latest;
+		} else
+			latest = sectionHashMap.computeIfAbsent(index >> 3, (k) -> new SectionGroup((Chunk) (Object) this, k));
+		return latest.get(
+			MathHelpers.remEuclid(index, 8)
+		);
 	}
 
 	public ChunkSection v_c$createSection(int index) {
-		if (latest != null && latest.yPosition == index) return latest;
-		latest = sectionHashMap.computeIfAbsent(index, (k) -> new ChunkSection((Chunk) (Object) this, k));
-		return latest;
+		if (latest != null && latest.crd == index) return latest.get(
+			MathHelpers.remEuclid(index, 8)
+		);
+		SectionGroup latest = sectionHashMap.computeIfAbsent(index >> 3, (k) -> new SectionGroup((Chunk) (Object) this, k));
+		return latest.get(
+			MathHelpers.remEuclid(index, 8)
+		);
 	}
 
 	public ChunkSection v_c$getSectionNullable(int index) {
-		if (latest != null && latest.yPosition == index) return latest;
-		latest = sectionHashMap.get(index);
-		return latest;
+		if (latest != null && latest.crd == index) return latest.get(
+			MathHelpers.remEuclid(index, 8)
+		);
+		SectionGroup latest = sectionHashMap.get(index >> 3);
+		if (latest == null) return null;
+		return latest.get(
+			MathHelpers.remEuclid(index, 8)
+		);
 	}
 
 	/**
