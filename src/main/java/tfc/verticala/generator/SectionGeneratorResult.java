@@ -3,8 +3,6 @@ package tfc.verticala.generator;
 import net.minecraft.core.block.Block;
 import net.minecraft.core.world.chunk.ChunkSection;
 
-import java.util.Arrays;
-
 public class SectionGeneratorResult {
 	private final short[] sectionBlocksArray;
 	private int numBlocksInSectionArray = 0;
@@ -42,5 +40,11 @@ public class SectionGeneratorResult {
 
 	public boolean hasBlocks() {
 		return numBlocksInSectionArray != 0;
+	}
+
+	public SectionGeneratorResult copy(SectionGeneratorResult template) {
+		System.arraycopy(template.sectionBlocksArray, 0, sectionBlocksArray, 0, this.sectionBlocksArray.length);
+		this.numBlocksInSectionArray = template.numBlocksInSectionArray;
+		return this;
 	}
 }

@@ -39,24 +39,28 @@ public class ChunkLoaderCubic implements IChunkLoader {
 		boolean dskip = cancelSections;
 		cancelSections = false;
 		DataInputStream regionStream = CubicFileCache.getChunkInputStream(this.worldDir, x, y, z);
+
 		if (regionStream != null) {
 			CompoundTag tag = NbtIo.read(regionStream);
 			ChunkReaderVersion2 rdr = new ChunkReaderVersion2(world, tag);
 			Map<Integer, String> biomeRegistry = rdr.getBiomeRegistry();
+			int cm = cm(y);
 			for (int i = 0; i < 8; i++) {
-				ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm(y) + i);
+				ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm + i);
 				ChunkLoaderLegacy.loadChunkSectionFromCompound(
 					sec, rdr, biomeRegistry
 				);
 			}
 		} else {
 			ChunkGeneratorCubic cubic = ((ChunkProviderModifications) world.getChunkProvider()).getCubicGenerator();
-			for (int i = 0; i < 8; i++) {
-				ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm(y) + i);
-				cubic.generate(chnk, sec);
-				chnk.setChunkModified();
-			}
+			cubic.generate(
+				chnk,
+				cm(y),
+				cm(y) + 8
+			);
+			chnk.setChunkModified();
 		}
+
 		chnk.recalcHeightmap();
 		cancelSections = dskip;
 	}

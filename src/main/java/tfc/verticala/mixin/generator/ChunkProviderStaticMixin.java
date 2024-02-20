@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tfc.verticala.generator.ChunkGeneratorCubic;
 import tfc.verticala.generator.decorator.ChunkDecoratorCubic;
+import tfc.verticala.impl.generator.OverworldChunkDecoratorCubic;
 import tfc.verticala.impl.generator.VanillaCubicChunkGenerator;
 import tfc.verticala.itf.ChunkProviderModifications;
 
@@ -30,9 +31,7 @@ public class ChunkProviderStaticMixin implements ChunkProviderModifications {
 
 	@Inject(at = @At("TAIL"), method = "<init>")
 	public void postInit(World world, IChunkLoader ichunkloader, ChunkGenerator chunkGenerator, CallbackInfo ci) {
-		cubic = new VanillaCubicChunkGenerator(world, chunkGenerator, (chunk, section) -> {
-			// no-op
-		});
+		cubic = new VanillaCubicChunkGenerator(world, chunkGenerator, new OverworldChunkDecoratorCubic());
 	}
 
 	@Redirect(method = "regenerateChunk", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/world/generate/chunk/ChunkGenerator;generate(II)Lnet/minecraft/core/world/chunk/Chunk;"))

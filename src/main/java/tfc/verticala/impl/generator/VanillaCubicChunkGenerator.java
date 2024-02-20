@@ -37,8 +37,8 @@ public class VanillaCubicChunkGenerator extends ChunkGeneratorCubic {
 
 	@Override
 	protected SectionGeneratorResult doBlockGeneration(Chunk chunk, ChunkSection section) {
-		if ((section.yPosition) < 0) return voidRes;
-		return skyRes;
+		if ((section.yPosition) < 0) return new SectionGeneratorResult().copy(voidRes);
+		return new SectionGeneratorResult().copy(skyRes);
 	}
 
 	@Override
