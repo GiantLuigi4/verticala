@@ -29,29 +29,6 @@ public abstract class ChunkMixin implements ChunkModifications {
 	@Shadow
 	protected abstract void lightGaps(int x, int z);
 
-	private boolean lowerPopulated;
-	private boolean upperPopulated;
-
-	@Override
-	public void v_c$setLowerHalfPopulated() {
-		this.lowerPopulated = true;
-	}
-
-	@Override
-	public void v_c$setUpperHalfPopulated() {
-		this.upperPopulated = true;
-	}
-
-	@Override
-	public boolean v_c$isLowerHalfPopulated() {
-		return lowerPopulated;
-	}
-
-	@Override
-	public boolean v_c$isUpperHalfPopulated() {
-		return upperPopulated;
-	}
-
 	@Shadow
 	@Final
 	public int zPosition;
@@ -102,8 +79,15 @@ public abstract class ChunkMixin implements ChunkModifications {
 			IChunkLoader ldr = world.getSaveHandler().getChunkLoader(world.dimension);
 			if (ldr instanceof ChunkLoaderCubic) {
 				try {
-					((ChunkLoaderCubic) ldr).loadChunk(world, (Chunk) (Object) this, xPosition, index, zPosition);
+					if (sectionHashMap.isEmpty()) {
+						((ChunkLoaderCubic) ldr).loadChunk(world, (Chunk) (Object) this, xPosition, 0, zPosition);
+						((ChunkLoaderCubic) ldr).loadChunk(world, (Chunk) (Object) this, xPosition, -1, zPosition);
+						if (index != 0)
+							((ChunkLoaderCubic) ldr).loadChunk(world, (Chunk) (Object) this, xPosition, index, zPosition);
+					} else
+						((ChunkLoaderCubic) ldr).loadChunk(world, (Chunk) (Object) this, xPosition, index, zPosition);
 				} catch (Throwable err) {
+					err.printStackTrace();
 				}
 			}
 		}

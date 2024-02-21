@@ -6,15 +6,18 @@ import net.minecraft.core.world.biome.Biome;
 import net.minecraft.core.world.chunk.Chunk;
 import net.minecraft.core.world.chunk.ChunkSection;
 import tfc.verticala.generator.decorator.ChunkDecoratorCubic;
+import tfc.verticala.generator.struct.SectionGeneratorResult;
 import tfc.verticala.itf.ChunkModifications;
 
 public abstract class ChunkGeneratorCubic {
 	protected final World world;
 	private final ChunkDecoratorCubic decorator;
+	private final ChunkPopulationHandler populationHandler;
 
 	public ChunkGeneratorCubic(World world, ChunkDecoratorCubic decorator) {
 		this.world = world;
 		this.decorator = decorator;
+		populationHandler = new ChunkPopulationHandler(decorator);
 	}
 
 	public final void generate(Chunk chunk, int minSection, int maxSection) {
@@ -40,7 +43,12 @@ public abstract class ChunkGeneratorCubic {
 	}
 
 	public final void decorate(Chunk chunk, ChunkSection section) {
-		this.decorator.decorate(chunk, section);
+//		this.decorator.decorate(chunk, section);
+		populationHandler.populate(
+			chunk.world, chunk,
+			section.yPosition >> 3,
+			chunk.xPosition, chunk.zPosition
+		);
 	}
 
 	public Chunk pregen(int chunkX, int chunkZ) {

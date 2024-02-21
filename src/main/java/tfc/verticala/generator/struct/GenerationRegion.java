@@ -1,4 +1,4 @@
-package tfc.verticala.generator;
+package tfc.verticala.generator.struct;
 
 import net.minecraft.core.world.chunk.Chunk;
 import net.minecraft.core.world.chunk.ChunkSection;

@@ -11,12 +11,13 @@
     "interaction.ItemBlockMixin",
     "loader.ChunkLoaderLegacyMixin",
     "loader.SaveHandlerClientSPMixin",
-    "render.ChunkCacheMixin",
-    "render.NoLight",
-    "render.RenderGlobalMixin"
+    "SectionMixin",
+    "render.NoLight"
   ],
   "client": [
-    "generator.MinecraftMixin"
+    "generator.MinecraftMixin",
+    "render.ChunkCacheMixin",
+    "render.RenderGlobalMixin"
   ],
   "injectors": {
     "defaultRequire": 1

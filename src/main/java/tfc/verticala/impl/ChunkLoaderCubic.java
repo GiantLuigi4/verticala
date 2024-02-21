@@ -14,6 +14,7 @@ import net.minecraft.core.world.save.mcregion.RegionFileCache;
 import tfc.verticala.generator.ChunkGeneratorCubic;
 import tfc.verticala.itf.ChunkModifications;
 import tfc.verticala.itf.ChunkProviderModifications;
+import tfc.verticala.itf.SectionModifications;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -40,6 +41,7 @@ public class ChunkLoaderCubic implements IChunkLoader {
 		cancelSections = false;
 		DataInputStream regionStream = CubicFileCache.getChunkInputStream(this.worldDir, x, y, z);
 
+		ChunkGeneratorCubic cubic = ((ChunkProviderModifications) world.getChunkProvider()).getCubicGenerator();
 		if (regionStream != null) {
 			CompoundTag tag = NbtIo.read(regionStream);
 			ChunkReaderVersion2 rdr = new ChunkReaderVersion2(world, tag);
@@ -50,16 +52,35 @@ public class ChunkLoaderCubic implements IChunkLoader {
 				ChunkLoaderLegacy.loadChunkSectionFromCompound(
 					sec, rdr, biomeRegistry
 				);
+				if (
+					tag.containsKey("PopulatedL") &&
+						tag.getBoolean(i < 4 ? "PopulatedL" : "PopulatedU")
+				)
+					((SectionModifications) sec).v_c$setPopulated();
 			}
+
+			ChunkSection first = ((ChunkModifications) chnk).v_c$createSection(cm);
+			cubic.decorate(chnk, first);
 		} else {
-			ChunkGeneratorCubic cubic = ((ChunkProviderModifications) world.getChunkProvider()).getCubicGenerator();
+			int cm = cm(y);
 			cubic.generate(
 				chnk,
-				cm(y),
-				cm(y) + 8
+				cm,
+				cm + 8
 			);
+			ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm);
+			cubic.decorate(chnk, sec);
 			chnk.setChunkModified();
 		}
+
+		chnk.world.markBlocksDirty(
+			chnk.xPosition << 4,
+			y << 4,
+			chnk.zPosition << 4,
+			(chnk.xPosition << 4) + 16,
+			(y + 7) << 4,
+			(chnk.zPosition << 4) + 16
+		);
 
 		chnk.recalcHeightmap();
 		cancelSections = dskip;
@@ -132,6 +153,11 @@ public class ChunkLoaderCubic implements IChunkLoader {
 
 					cubicReegionStream = CubicFileCache.getChunkOutputStream(this.worldDir, chunk.xPosition, i, chunk.zPosition);
 					sectionsTag = new CompoundTag();
+					try {
+						sectionsTag.putBoolean("PopulatedL", ((SectionModifications) map.get(crd << 3)).v_c$isPopulated());
+						sectionsTag.putBoolean("PopulatedU", ((SectionModifications) map.get((crd << 3) + 7)).v_c$isPopulated());
+					} catch (Throwable err) {
+					}
 					new ChunkWriter(world, sectionsTag).putBiomeRegistry();
 					cd = crd;
 				}

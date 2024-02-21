@@ -4,10 +4,9 @@ import net.minecraft.core.block.Block;
 import net.minecraft.core.world.World;
 import net.minecraft.core.world.chunk.Chunk;
 import net.minecraft.core.world.chunk.ChunkSection;
-import net.minecraft.core.world.generate.chunk.ChunkDecorator;
 import net.minecraft.core.world.generate.chunk.ChunkGenerator;
 import tfc.verticala.generator.ChunkGeneratorCubic;
-import tfc.verticala.generator.SectionGeneratorResult;
+import tfc.verticala.generator.struct.SectionGeneratorResult;
 import tfc.verticala.generator.decorator.ChunkDecoratorCubic;
 
 public class VanillaCubicChunkGenerator extends ChunkGeneratorCubic {
