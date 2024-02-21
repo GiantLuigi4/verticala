@@ -29,6 +29,29 @@ public abstract class ChunkMixin implements ChunkModifications {
 	@Shadow
 	protected abstract void lightGaps(int x, int z);
 
+	private boolean lowerPopulated;
+	private boolean upperPopulated;
+
+	@Override
+	public void v_c$setLowerHalfPopulated() {
+		this.lowerPopulated = true;
+	}
+
+	@Override
+	public void v_c$setUpperHalfPopulated() {
+		this.upperPopulated = true;
+	}
+
+	@Override
+	public boolean v_c$isLowerHalfPopulated() {
+		return lowerPopulated;
+	}
+
+	@Override
+	public boolean v_c$isUpperHalfPopulated() {
+		return upperPopulated;
+	}
+
 	@Shadow
 	@Final
 	public int zPosition;

@@ -30,7 +30,7 @@ public class GenerationRegion {
 		sections[sec].setBlock(x, y & 15, z, id);
 	}
 
-	public void setBlockMetaData(int x, int y, int z, int meta) {
+	public void setBlockMeta(int x, int y, int z, int meta) {
 		int sec = y << 4;
 		sections[sec].setData(x, y & 15, z, meta);
 	}
