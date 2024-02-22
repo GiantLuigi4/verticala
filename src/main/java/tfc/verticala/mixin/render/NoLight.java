@@ -29,6 +29,7 @@ public class NoLight {
 	@Final
 	public LightLayer layer;
 
+	@Unique
 	protected int calc(
 		World world,
 		int x, int y, int z,
@@ -55,6 +56,7 @@ public class NoLight {
 		) - lb - 1;
 	}
 
+	@Unique
 	protected void apply(
 		World world,
 		int x, int y, int z,
@@ -83,10 +85,58 @@ public class NoLight {
 		}
 	}
 
+	@Unique
 	protected void propagate(World world, int x, int y, int z) {
 		int id = world.getBlockId(x, y, z);
 		int emm = Block.lightEmission[id];
-		if (emm == 0) return;
+		if (emm == 0) {
+			emm = world.getSavedLightValue(layer, x, y, z);
+
+			for (int x1 = 0; x1 <= emm; x1++) {
+				for (int y1 = 0; y1 <= emm; y1++) {
+					for (int z1 = 0; z1 <= emm; z1++) {
+						int lv = emm - (Math.abs(x1) + Math.abs(y1) + Math.abs(z1));
+						if (lv < 0) continue;
+						for (int x2 = -1; x2 <= 1; x2 += 2) {
+							for (int y2 = -1; y2 <= 1; y2 += 2) {
+								for (int z2 = -1; z2 <= 1; z2 += 2) {
+									int id1 = world.getBlockId(x + x1 * x2, y + y1 * y2, z + z1 * z2);
+									int emm1 = Block.lightEmission[id1];
+									world.setLightValue(layer, x + x1 * x2, y + y1 * y2, z + z1 * z2, emm1);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			for (int x1 = emm; x1 >= 0; x1--) {
+				for (int y1 = emm; y1 >= 0; y1--) {
+					for (int z1 = emm; z1 >= 0; z1--) {
+						apply(
+							world,
+							x, y, z,
+							x1, y1, z1,
+							emm
+						);
+					}
+				}
+			}
+			for (int x1 = 0; x1 <= emm; x1++) {
+				for (int y1 = 0; y1 <= emm; y1++) {
+					for (int z1 = 0; z1 <= emm; z1++) {
+						apply(
+							world,
+							x, y, z,
+							x1, y1, z1,
+							emm
+						);
+					}
+				}
+			}
+
+			return;
+		}
 
 		for (int x1 = 0; x1 <= emm; x1++) {
 			for (int y1 = 0; y1 <= emm; y1++) {
@@ -110,26 +160,11 @@ public class NoLight {
 				}
 			}
 		}
-
-//		for (int x1 = -emm; x1 <= emm; x1++) {
-//			for (int y1 = -emm; y1 <= emm; y1++) {
-//				for (int z1 = -emm; z1 <= emm; z1++) {
-//					world.setLightValue(
-//						layer, x, y, z,
-//						Math.max(
-//							world.getSavedLightValue(layer, x, y, z),
-//							Math.abs(x1) + Math.abs(y1) + Math.abs(z1)
-//						)
-//					);
-//				}
-//			}
-//		}
 	}
 
 	@Inject(at = @At("HEAD"), method = "performLightUpdate", cancellable = true)
 	public void performLightUpdate(World world, CallbackInfo ci) {
 		if (layer != LightLayer.Sky) {
-			// TODO: light removal
 			for (int x = minX; x <= maxX; x++) {
 				for (int y = minY; y <= maxY; y++) {
 					for (int z = minZ; z <= maxZ; z++) {
@@ -139,7 +174,7 @@ public class NoLight {
 					}
 				}
 			}
-			ci.cancel(); // TODO: fix block light
+			ci.cancel();
 		}
 	}
 
