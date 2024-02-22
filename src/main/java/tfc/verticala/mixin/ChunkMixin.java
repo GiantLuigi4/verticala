@@ -13,7 +13,9 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import tfc.verticala.impl.ChunkLoaderCubic;
 import tfc.verticala.itf.ChunkModifications;
+import tfc.verticala.itf.SectionModifications;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,16 +41,10 @@ public abstract class ChunkMixin implements ChunkModifications {
 	public World world;
 
 	@Shadow
-	protected abstract void recalcHeight(int x, int y, int z);
-
-	@Shadow
 	public abstract int getHeightValue(int x, int z);
 
 	@Shadow
 	public static boolean isLit;
-
-	@Shadow
-	public abstract void recalcHeightmapOnly();
 
 	@Shadow
 	public double[] temperature;
@@ -59,6 +55,16 @@ public abstract class ChunkMixin implements ChunkModifications {
 
 	@Shadow
 	public abstract void init();
+
+	@Shadow
+	protected abstract void setHeightValue(int x, int z, int y);
+
+	@Shadow
+	public int lowestY;
+	@Shadow
+	public int averageBlockHeight;
+	@Shadow
+	public short[] heightMap;
 
 	private final Map<Integer, ChunkSection> sectionHashMap = new ConcurrentHashMap<>();
 
@@ -144,10 +150,10 @@ public abstract class ChunkMixin implements ChunkModifications {
 
 				if (!this.world.worldType.hasCeiling()) {
 					if (Block.lightBlock[id & 16383] != 0) {
-						if (y >= heightValue) {
-							this.recalcHeight(x, y + 1, z);
+						if (y >= heightValue + 1) {
+							this.recalcHeight(x, y, z);
 						}
-					} else if (y == heightValue - 1) {
+					} else if (y == heightValue) {
 						this.recalcHeight(x, y, z);
 					}
 
@@ -262,6 +268,8 @@ public abstract class ChunkMixin implements ChunkModifications {
 	 */
 	@Overwrite
 	public int getBrightness(LightLayer layer, int x, int y, int z) {
+		if (y > getHeightValue(x, z)) return 15;
+
 		if (x >= 0 && x < 16 && z >= 0 && z < 16) {
 			ChunkSection section = v_c$getSectionNullable(y / 16);
 			if (section != null) return section.getBrightness(layer, x, y & 15, z);
@@ -290,6 +298,8 @@ public abstract class ChunkMixin implements ChunkModifications {
 	 */
 	@Overwrite
 	public int getRawBrightness(int x, int y, int z, int skySubtract) {
+		if (y > getHeightValue(x, z)) return 15;
+
 		if (x >= 0 && x < 16 && z >= 0 && z < 16) {
 			ChunkSection section = v_c$getSectionNullable(y / 16);
 			if (section == null)
@@ -306,6 +316,117 @@ public abstract class ChunkMixin implements ChunkModifications {
 		}
 	}
 
+	/**
+	 * @author GiantLuigi4
+	 * @reason per-section heightmap
+	 */
+	@Overwrite
+	private void recalcHeight(int x, int y, int z) {
+		ChunkSection sec = getSection(y >> 4);
+
+		int yv = 15;
+		boolean hit = false;
+
+		for (; yv >= 0; yv--)
+			if (Block.lightBlock[sec.getBlock(x, yv, z)] != 0) {
+				hit = true;
+				((SectionModifications) sec).v_c$getHeightmap()[x + z * 16] = yv;
+				break;
+			}
+
+		if (!hit)
+			((SectionModifications) sec).v_c$getHeightmap()[x + z * 16] = -1;
+
+		recalcHeightmapOnly();
+
+		this.isModified = true;
+	}
+
+	/**
+	 * @author
+	 * @reason
+	 */
+	@Overwrite
+	public void recalcHeightmap() {
+		this.recalcHeightmapOnly();
+		int x;
+		int z;
+		if (!this.world.worldType.hasCeiling()) {
+			for (ChunkSection value : sectionHashMap.values()) {
+				for (x = 0; x < 16; ++x) {
+					for (z = 0; z < 16; ++z) {
+						int hv = getHeightValue(x, z);
+						hv -= value.yPosition << 4;
+						if (hv > 16) hv = 16;
+						else if (hv < 0) hv = 0;
+						for (int y = 0; y < hv; y++) {
+							setBrightness(
+								LightLayer.Sky, x, y + (value.yPosition << 4), z, 0
+							);
+						}
+						if (hv != 16) {
+							for (int y = hv; y < 15; y++) {
+								setBrightness(
+									LightLayer.Sky, x, y + (value.yPosition << 4), z, 15
+								);
+							}
+						}
+					}
+				}
+
+				this.world.scheduleLightingUpdate(
+					LightLayer.Sky,
+					(xPosition << 4) - 1,
+					(value.yPosition << 4) - 1,
+					(zPosition << 4) - 1,
+					(xPosition << 4) + 16,
+					(value.yPosition << 4) + 16,
+					(zPosition << 4) + 16
+				);
+			}
+		}
+	}
+
+	/**
+	 * @author GiantLuigi4
+	 * @reason per-section heightmap
+	 */
+	@Overwrite
+	public void recalcHeightmapOnly() {
+		Arrays.fill(heightMap, Short.MIN_VALUE);
+
+		for (ChunkSection value : sectionHashMap.values()) {
+			if (((SectionModifications) value).modified()) {
+				SectionModifications motif = ((SectionModifications) value);
+
+				motif.v_c$setModified(false);
+				for (int x = 0; x < 16; x++) {
+					for (int z = 0; z < 16; z++) {
+						int y = 15;
+
+						boolean hit = false;
+						for (; y >= 0; y--)
+							if (Block.lightBlock[value.getBlock(x, y, z)] != 0) {
+								hit = true;
+								motif.v_c$getHeightmap()[x + z * 16] = y;
+								break;
+							}
+
+						if (!hit)
+							motif.v_c$getHeightmap()[x + z * 16] = -1;
+					}
+				}
+			}
+		}
+
+		for (ChunkSection value : sectionHashMap.values()) {
+			for (int i = 0; i < ((SectionModifications) value).v_c$getHeightmap().length; i++) {
+				int hv = ((SectionModifications) value).v_c$getHeightmap()[i];
+				if (hv != -1)
+					this.heightMap[i] = (short) Math.max(this.heightMap[i], (value.yPosition << 4) + hv);
+			}
+		}
+	}
 
 	// TODO: do these especially better
 

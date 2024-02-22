@@ -52,6 +52,7 @@ public class ChunkLoaderCubic implements IChunkLoader {
 				ChunkLoaderLegacy.loadChunkSectionFromCompound(
 					sec, rdr, biomeRegistry
 				);
+				((SectionModifications) sec).v_c$setModified(true);
 				if (
 					tag.containsKey("PopulatedL") &&
 						tag.getBoolean(i < 4 ? "PopulatedL" : "PopulatedU")
@@ -68,6 +69,12 @@ public class ChunkLoaderCubic implements IChunkLoader {
 				cm,
 				cm + 8
 			);
+
+			for (int i = 0; i < 8; i++) {
+				ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm + i);
+				((SectionModifications) sec).v_c$setModified(true);
+			}
+
 			ChunkSection sec = ((ChunkModifications) chnk).v_c$createSection(cm);
 			cubic.decorate(chnk, sec);
 			chnk.setChunkModified();

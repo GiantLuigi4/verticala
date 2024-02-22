@@ -43,9 +43,9 @@ public abstract class WorldMixin {
 		return sectionMap.get(mv).yPosition << 4 + 16;
 	}
 
-	@Overwrite
-	public void scheduleLightingUpdate(LightLayer layer, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-	}
+//	@Overwrite
+//	public void scheduleLightingUpdate(LightLayer layer, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+//	}
 
 	/**
 	 * @author
@@ -54,10 +54,11 @@ public abstract class WorldMixin {
 	@Overwrite
 	public int findTopSolidBlock(int x, int z) {
 		Chunk chunk = this.getChunkFromBlockCoords(x, z);
-		int y = 256 - 1;
 		x &= 15;
+		z &= 15;
+		int y = chunk.getHeightValue(x, z);
 
-		for (z &= 15; y > 0; --y) {
+		for (; y > 0; --y) {
 			int id = chunk.getBlockID(x, y, z);
 			Material material = id != 0 ? Block.blocksList[id].blockMaterial : Material.air;
 			if (material.blocksMotion() || material.isLiquid()) {
@@ -73,16 +74,17 @@ public abstract class WorldMixin {
 	 * @reason
 	 */
 	@Overwrite
-	public int findTopSolidNonLiquidBlock(int i, int j) {
-		Chunk chunk = this.getChunkFromBlockCoords(i, j);
-		int k = 256 - 1;
-		i &= 15;
+	public int findTopSolidNonLiquidBlock(int x, int z) {
+		Chunk chunk = this.getChunkFromBlockCoords(x, z);
+		x &= 15;
+		z &= 15;
+		int y = chunk.getHeightValue(x, z);
 
-		for (j &= 15; k > 0; --k) {
-			int l = chunk.getBlockID(i, k, j);
-			Material material = l != 0 ? Block.blocksList[l].blockMaterial : Material.air;
-			if (material.blocksMotion()) {
-				return k + 1;
+		for (; y > 0; --y) {
+			int id = chunk.getBlockID(x, y, z);
+			Material material = id != 0 ? Block.blocksList[id].blockMaterial : Material.air;
+			if (material.blocksMotion() || material.isLiquid()) {
+				return y + 1;
 			}
 		}
 
